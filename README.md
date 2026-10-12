@@ -12,7 +12,7 @@
     </tr>
     <tr>
         <td align="left"> <b> Научный руководитель </b> </td>
-        <td> Роман Валерьевич Ищенок </td>
+        <td> Роман Валерьевич Ищенко </td>
     </tr>
 </table>
 
@@ -33,7 +33,7 @@ CRISP (Corpus-grounded Challenger--Reasoner Self-Play) -- сквозная «ф�
 ```BibTeX
 @article{akramov2026crisp,
     title={CRISP: самоигра Challenger--Reasoner на основе корпуса документов для дообучения больших языковых моделей в предметных областях},
-    author={Акрамов, Роман and Ищенок, Роман Валерьевич},
+    author={Акрамов, Роман and Ищенко, Роман Валерьевич},
     year={2026}
 }
 ```
