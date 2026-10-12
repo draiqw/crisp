@@ -1,48 +1,43 @@
-# Title
+# CRISP: самоигра Challenger--Reasoner на основе корпуса документов для дообучения больших языковых моделей в предметных областях
 
-<!-- Change `kisnikser/m1p-template` to `intsystems/your-repository`-->
-[![License](https://badgen.net/github/license/kisnikser/m1p-template?color=green)](https://github.com/kisnikser/m1p-template/blob/main/LICENSE)
-[![GitHub Contributors](https://img.shields.io/github/contributors/kisnikser/m1p-template)](https://github.com/kisnikser/m1p-template/graphs/contributors)
-[![GitHub Issues](https://img.shields.io/github/issues-closed/kisnikser/m1p-template.svg?color=0088ff)](https://github.com/kisnikser/m1p-template/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr-closed/kisnikser/m1p-template.svg?color=7f29d6)](https://github.com/kisnikser/m1p-template/pulls)
+[![License](https://badgen.net/github/license/draiqw/crisp?color=green)](https://github.com/draiqw/crisp/blob/main/LICENSE)
+[![GitHub Contributors](https://img.shields.io/github/contributors/draiqw/crisp)](https://github.com/draiqw/crisp/graphs/contributors)
+[![GitHub Issues](https://img.shields.io/github/issues-closed/draiqw/crisp.svg?color=0088ff)](https://github.com/draiqw/crisp/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr-closed/draiqw/crisp.svg?color=7f29d6)](https://github.com/draiqw/crisp/pulls)
 
 <table>
     <tr>
-        <td align="left"> <b> Author </b> </td>
-        <td> Name Surname </td>
+        <td align="left"> <b> Автор </b> </td>
+        <td> Роман Акрамов </td>
     </tr>
     <tr>
-        <td align="left"> <b> Consultant </b> </td>
-        <td> Name Surname, PhD/DSc </td>
-    </tr>
-    <tr>
-        <td align="left"> <b> Advisor </b> </td>
-        <td> Name Surname, PhD/DSc </td>
+        <td align="left"> <b> Научный руководитель </b> </td>
+        <td> Роман Валерьевич Ищенок </td>
     </tr>
 </table>
 
-## Assets
+## Материалы
 
-- [LinkReview](LINKREVIEW.md)
-- [Code](code)
-- [Paper](paper/main.pdf)
-- [Slides](slides/main.pdf)
+- [Статья](paper/main.tex)
 
-## Abstract
+## Описание проекта
+
+CRISP (Corpus-grounded Challenger--Reasoner Self-Play) -- сквозная «фабрика данных», которая превращает набор PDF-документов предметной области в два артефакта: корпус для предобучения и QA-датасет, пригодный без изменений и для SFT, и для RL. Конвейер состоит из четырёх этапов: OCR, очистка и фильтрация корпуса, самоигра Challenger--Reasoner на основе корпуса с наградой, зависящей от дисперсии, и курирование вопросов многокритериальным LLM-судьёй. Конвейер применяется к трём русскоязычным STEM-областям: общим дисциплинам университетского уровня, линейной алгебре, теории вероятностей и математической статистике.
+
+## Аннотация
 
 TODO
 
-## Citation
+## Цитирование
 
-If you find our work helpful, please cite us.
 ```BibTeX
-@article{citekey,
-    title={Title},
-    author={Name Surname, Name Surname (consultant), Name Surname (advisor)},
-    year={2025}
+@article{akramov2026crisp,
+    title={CRISP: самоигра Challenger--Reasoner на основе корпуса документов для дообучения больших языковых моделей в предметных областях},
+    author={Акрамов, Роман and Ищенок, Роман Валерьевич},
+    year={2026}
 }
 ```
 
-## Licence
+## Лицензия
 
-Our project is MIT licensed. See [LICENSE](LICENSE) for details.
+Проект распространяется по лицензии MIT, подробности в [LICENSE](LICENSE).

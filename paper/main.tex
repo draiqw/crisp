@@ -3,8 +3,9 @@
 \PassOptionsToPackage{numbers, sort, compress}{natbib}
 \usepackage[main,final]{neurips_2025}
 
-\usepackage[T1]{fontenc}
+\usepackage[T2A]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{booktabs}
@@ -28,23 +29,38 @@
 \usepackage{algpseudocode}
 \usepackage{listings}
 
-\newtheorem{theorem}{Theorem} % continuous numbers
+\newtheorem{theorem}{Теорема} % continuous numbers
 %%\newtheorem{theorem}{Theorem}[section] % sectionwise numbers
 %% optional argument [theorem] produces theorem numbering sequence instead of independent numbers for Proposition
-\newtheorem{proposition}[theorem]{Proposition}% 
-\newtheorem{lemma}{Lemma}% 
+\newtheorem{proposition}[theorem]{Утверждение}%
+\newtheorem{lemma}{Лемма}%
 %%\newtheorem{proposition}{Proposition} % to get separate numbers for theorem and proposition etc.
 
-\newtheorem{example}{Example}
-\newtheorem{remark}{Remark}
+\newtheorem{example}{Пример}
+\newtheorem{remark}{Замечание}
 
-\newtheorem{definition}{Definition}
-\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Определение}
+\newtheorem{assumption}{Предположение}
+
+% neurips_2025.sty печатает заголовок аннотации по-английски; переопределяем на русский.
+\renewenvironment{abstract}%
+{%
+  \vskip 0.075in%
+  \centerline%
+  {\large\bf Аннотация}%
+  \vspace{0.5ex}%
+  \begin{quote}%
+}
+{
+  \par%
+  \end{quote}%
+  \vskip 1ex%
+}
 
 %%%
 
 
-\title{Title}
+\title{CRISP: самоигра Challenger--Reasoner на основе корпуса документов для дообучения больших языковых моделей в предметных областях}
 
 
 % The \author macro works with any number of authors. There are two commands
@@ -57,15 +73,15 @@
 
 
 \author{
-  Name Surname\\
-  MIPT\\
-  Moscow, Russia\\
-  \texttt{email@phystech.edu}\\
+  Роман Акрамов\\
+  МФТИ\\
+  Москва, Россия\\
+  \texttt{akramovromanr@gmail.com}\\
   \And
-  Name Surname\\
-  MIPT\\
-  Moscow, Russia\\
-  \texttt{email@phystech.edu}\\
+  Роман Валерьевич Ищенок\\
+  Научный руководитель\\
+  МФТИ\\
+  Москва, Россия\\
 }
 
 
@@ -78,50 +94,65 @@
     TODO
 \end{abstract}
 
-\textbf{Keywords:} TODO
+\textbf{Ключевые слова:} самоигра, обучение с подкреплением, большие языковые модели, курирование данных, GRPO, синтез данных на основе корпуса
 
-\section{Introduction}\label{sec:intro}
+\section{Введение}\label{sec:intro}
 
-TODO
+Дообучение (post-training) больших языковых моделей (LLM) -- обучение с учителем (SFT) на отобранных демонстрациях и обучение с подкреплением с проверяемыми наградами (RLVR) с помощью GRPO~\cite{shao2024deepseekmath} и Dr.\,GRPO~\cite{liu2025drgrpo} -- хорошо отработано для узкого набора изученных областей: школьной математики, генерации кода и диалоговых ассистентов. Однако эти подходы трудно применить в областях, где нет готового набора пар <<вопрос--ответ>> (QA) с надёжными эталонными ответами и откалиброванной сложностью. Узким местом стали уже не алгоритмы обучения, а получение данных, тогда как ручная разметка экспертами остаётся слишком дорогой.
 
-\textbf{Contributions.} Our contributions can be summarized as follows:
+У существующих автоматических подходов есть известные ограничения. Дистилляция из модели-учителя~\cite{wang2022selfinstruct,xu2023wizardlm,luo2023wizardmath} ограничена возможностями учителя и его знанием предметной области и часто неэффективна в узких доменах. Сбор сырого корпуса~\cite{penedo2024fineweb} даёт данные для предобучения, но не пары <<вопрос--ответ>>. Генерация вопросов по корпусу обычно не калибрует их сложность, а самоигра без опоры на документы~\cite{huang2025rzero,zhao2025absolute} подвержена галлюцинациям и дрейфу распределения.
+
+Самоигра \emph{на основе корпуса}, в которой генератор вопросов работает с реальным документом, а эталонные ответы извлекаются из текста, сочетает фактическую обоснованность с адаптивной сложностью: генератор вопросов получает награду в зависимости от дисперсии успешности отвечающей модели. Эту идею предложили авторы SPICE~\cite{spice} в виде алгоритма обучения, но код и данные не опубликовали. Мы заново реализуем и расширяем этот подход: его схема награды и взаимодействие двух ролей становятся основой более широкой сквозной <<фабрики данных>>, которую мы называем \textbf{CRISP} (\textbf{C}orpus-grounded Challenger--\textbf{R}easoner Self-Play). Вместо одного обученного чекпойнта CRISP превращает набор исходных PDF-документов предметной области в два переиспользуемых артефакта: корпус для предобучения и QA-датасет, пригодный без изменений и для SFT, и для RL.
+
+\textbf{Описание проекта.} Конвейер состоит из четырёх этапов:
+\begin{enumerate}
+    \item \textbf{OCR.} Исходные PDF преобразуются в структурированный Markdown с сохранением математической нотации, таблиц и иерархии документа.
+    \item \textbf{Очистка, разбиение на фрагменты и фильтрация.} Удаляются артефакты OCR и издательские метаданные, текст разбивается на смысловые фрагменты (чанки), каждый фрагмент оценивается по качеству и размечается темами с помощью LLM. В результате получается чистый корпус для предобучения, который также служит входом для самоигры.
+    \item \textbf{Самоигра на основе корпуса.} Одна LLM обучается в двух ролях с отдельными LoRA-адаптерами: \emph{Challenger} читает фрагмент и формулирует вопрос с эталонным ответом, опирающимся на текст, а \emph{Reasoner} отвечает на него без доступа к документу. Challenger получает награду, зависящую от дисперсии: она максимальна, когда Reasoner решает вопрос примерно в половине попыток, поэтому сгенерированные вопросы держатся на границе возможностей модели.
+    \item \textbf{Курирование.} Журнал вопросов самоигры заново оценивается итоговой моделью, фильтруется по сложности и проходит через LLM-судью с несколькими критериями (отдельную, более сильную модель, а не саму обучаемую). На выходе получается готовый к обучению QA-датасет.
+\end{enumerate}
+Конвейер применяется к трём русскоязычным STEM-областям: общим естественно-научным и математическим дисциплинам университетского уровня, линейной алгебре, теории вероятностей и математической статистике. Корпус для предобучения оценивается продолженным предобучением в сравнении с открытыми датасетами для предобучения, а QA-датасет -- дообучением с помощью GRPO в сравнении с открытыми эталонными датасетами.
+
+\textbf{Вклад.} Основные результаты работы:
 \begin{itemize}
-    \item We present...
-    \item We demonstrate the validity of our theoretical results through empirical studies...
-    \item We highlight the implications of our findings for...
+    \item \textbf{Конвейер подготовки данных для предобучения}, который принимает PDF-документы предметной области и строит корпус с оценками качества и тематической разметкой для продолженного предобучения.
+    \item \textbf{Алгоритм самоигры}, обучающий одну LLM в двух ролях (Challenger и Reasoner) с помощью Dr.\,GRPO и награды, зависящей от дисперсии, и генерирующий вопросы на границе возможностей модели.
+    \item \textbf{Конвейер курирования данных для выравнивания}, который превращает журнал самоигры в единый QA-датасет, пригодный без изменений и для SFT, и для RL, с помощью многокритериальной фильтрации LLM-судьёй.
 \end{itemize}
 
-\textbf{Outline.} The rest of the paper is organized as follows...
+\textbf{Структура работы.} В разделе~\ref{sec:rw} приведён обзор литературы, в разделе~\ref{sec:prelim} описаны GRPO и Dr.\,GRPO, в разделе~\ref{sec:method} -- предлагаемый конвейер, в разделе~\ref{sec:exp} -- эксперименты, в разделах~\ref{sec:disc}--\ref{sec:concl} -- обсуждение результатов и заключение.
 
-\section{Related Work}\label{sec:rw}
+\section{Обзор литературы}\label{sec:rw}
 
-\textbf{Topic \#1.}
+\textbf{Тема \#1.}
 TODO
 
-\textbf{Topic \#2.}
+\textbf{Тема \#2.}
 TODO
 
-\section{Preliminaries}\label{sec:prelim}
+\section{Предварительные сведения}\label{sec:prelim}
 
-\subsection{General notation}
-
-In this section, we introduce the general notation used in the rest of the paper and the basic assumptions. 
-
-\subsection{Assumptions} 
+\subsection{Обозначения}
 
 TODO
 
-\section{Method}\label{sec:method}
-
-\section{Experiments}\label{sec:exp}
-
-To verify the theoretical estimates obtained, we conducted a detailed empirical study...
-
-\section{Discussion}\label{sec:disc}
+\subsection{Предположения}
 
 TODO
 
-\section{Conclusion}\label{sec:concl}
+\section{Метод}\label{sec:method}
+
+TODO
+
+\section{Эксперименты}\label{sec:exp}
+
+TODO
+
+\section{Обсуждение}\label{sec:disc}
+
+TODO
+
+\section{Заключение}\label{sec:concl}
 
 TODO
 
@@ -135,9 +166,9 @@ TODO
 
 \newpage
 \appendix
-\section{Appendix / supplemental material}\label{app}
+\section{Приложение}\label{app}
 
-\subsection{Additional experiments / Proofs of Theorems}\label{app:exp}
+\subsection{Дополнительные эксперименты}\label{app:exp}
 
 TODO
 
