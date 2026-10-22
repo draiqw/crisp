@@ -19,7 +19,9 @@
 ## Материалы
 
 - [LinkReview](LINKREVIEW.md)
+- [Код](code)
 - [Статья (PDF)](paper/main.pdf), [исходник](paper/main.tex)
+- [Слайд O-slide (PDF)](slides/main.pdf), [исходник](slides/main.tex)
 
 ## Описание проекта
 
