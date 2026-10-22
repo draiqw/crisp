@@ -28,36 +28,25 @@
 
 \begin{document}
 
-\begin{frame}{CRISP: вопросы из корпуса через самоигру улучшают сильную LLM,\\ а публичные math-датасеты её портят}
-\vspace{-8pt}
-\begin{columns}[T]
-\begin{column}{0.31\textwidth}
-\scriptsize
-\textbf{Конвейер:} 766 PDF $\to$ OCR $\to$ корпус $\to$ самоигра $C \rightleftarrows R$ $\to$ LLM-судья $\to$ QA-датасет.
-
-\smallskip
-\textbf{Обозначения}
-\begin{itemize}\setlength{\itemsep}{0pt}
-  \item $C$ (Challenger) видит документ $d$, задаёт вопрос $q$ с ответом $a^*$
-  \item $R$ (Reasoner) отвечает на $q$ \emph{без} $d$
-  \item награда $C$: $r_C = \exp\!\bigl(-\tfrac{(\mathrm{Var}-0.25)^2}{0.02}\bigr)$, максимум при 50\% решаемости
-  \item acc@1 --- доля верных ответов (avg@3, $T{=}0.6$)
-\end{itemize}
-
-\smallskip
-\textbf{Эксперимент:} Qwen3-14B-Instruct, один рецепт GRPO на четырёх наборах данных, лучший чекпоинт по своему домену.
-\end{column}
-\begin{column}{0.67\textwidth}
+\begin{frame}{CRISP: GRPO на сгенерированных вопросах --- на уровне публичных математических датасетов}
+\vspace{-12pt}
 \centering
-\includegraphics[width=0.94\textwidth]{oslide_main.pdf}\\[-2pt]
-{\tiny Усы --- $\pm1$ std биномиального шума (AIME: 30 задач, MATH-500: 500, GPQA-D: 198).}
+\includegraphics[width=0.97\textwidth]{oslide_main.pdf}
 
-\vspace{3pt}
-\begin{block}{Результат}
-\scriptsize
-GRPO на наших вопросах: MATH-500 $+3.0$, AIME-24 $+16.6$ п.п. к исходной модели;
-GRPO на DAPO-Math и DeepMath роняет AIME на 23--40 п.п.
-\end{block}
+\vspace{-2pt}
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\tiny
+\textbf{Что сравниваем.} Одна модель Qwen3-14B (Base и Instruct), один рецепт GRPO; меняются только обучающие данные. Вопросы CRISP получены без разметки: 766 PDF $\to$ OCR $\to$ корпус $\to$ самоигра Challenger (видит документ) / Reasoner (не видит) $\to$ отбор LLM-судьёй.
+
+\textbf{Обозначения.} acc@1 --- доля верных ответов, среднее по 3 сэмплам ($T{=}0.6$); усы --- $\pm1$ std биномиального шума (в AIME 30 задач).
+\end{column}
+\begin{column}{0.49\textwidth}
+\tiny
+\textbf{Среднее acc@1 по 9 бенчмаркам, \%} (без дообучения / GSM8K / DAPO-Math / DeepMath / \textbf{CRISP}):\\
+Base: 58.9 / 65.7 / 63.8 / 64.1 / \textbf{63.0}; \quad Instruct: 75.2 / 75.2 / 65.7 / 67.9 / \textbf{77.3}.
+
+\textbf{Итог.} На Base вопросы CRISP дают прирост того же порядка, что и публичные датасеты ($+4.1$ против $+4.9$...$+6.8$ п.п.). На Instruct не ухудшают модель ($+2.1$), тогда как DAPO-Math и DeepMath снижают среднее на 7--10 п.п.
 \end{column}
 \end{columns}
 \end{frame}

@@ -7,15 +7,21 @@ DATA = ROOT / "data" / "eval_broad.csv"
 RESULTS = ROOT / "results"
 FIGURES = ROOT.parent / "slides" / "figures"
 
-# Политика, для которой строится главный рисунок
-POLICY = "instruct"
+# Политики Qwen3-14B: по панели на каждую
+POLICIES = {"base": "Qwen3-14B-Base", "instruct": "Qwen3-14B-Instruct"}
 
-# Бенчмарки на рисунке и их подписи
+# Бенчмарки на рисунке и их подписи; "mean" — среднее по всем остальным
 BENCHMARKS = {
+    "gsm8k": "GSM8K",
+    "gsm8k_ru": "GSM8K-ru",
     "math_500": "MATH-500",
+    "math_500_ru": "MATH-500-ru",
     "aime_2024": "AIME-24",
     "aime_2025": "AIME-25",
     "gpqa_diamond": "GPQA-D",
+    "mmlu_stem": "MMLU\nSTEM",
+    "rummlu_stem": "RuMMLU\nSTEM",
+    "mean": "Среднее\nпо 9",
 }
 
 # Число задач в бенчмарке: нужно для оценки шума std = sqrt(p(1-p)/N)

@@ -14,10 +14,10 @@ import numpy as np  # noqa: E402
 import config  # noqa: E402
 
 COLORS = {
-    "baseline": "#9E9E9E",
+    "baseline": "#BDBDBD",
     "gsm8k": "#90CAF9",
-    "dapo_math": "#64B5F6",
-    "deepmath": "#1E88E5",
+    "dapo_math": "#42A5F5",
+    "deepmath": "#1565C0",
     "crisp_stem": "#E67E22",
 }
 
@@ -32,29 +32,33 @@ def draw(result, out_dir=config.FIGURES):
     out_dir.mkdir(parents=True, exist_ok=True)
     benches = list(config.BENCHMARKS)
     datasets = list(config.DATASETS)
-    cell = {(r["grpo_data"], r["benchmark"]): r for r in result}
+    cell = {(r["policy"], r["grpo_data"], r["benchmark"]): r for r in result}
 
-    plt.rcParams.update({"font.size": 11, "font.family": "DejaVu Sans"})
-    fig, ax = plt.subplots(figsize=(7.2, 3.6))
+    plt.rcParams.update({"font.size": 12, "font.family": "DejaVu Sans"})
+    fig, axes = plt.subplots(len(config.POLICIES), 1, figsize=(12, 4.8), sharex=True)
     width = 0.16
-    x = np.arange(len(benches))
-    for i, d in enumerate(datasets):
-        acc = [float(cell[d, b]["acc_at_1"]) for b in benches]
-        err = [float(cell[d, b]["std"]) for b in benches]
-        bars = ax.bar(x + (i - 2) * width, acc, width, yerr=err, capsize=2,
-                      color=COLORS[d], edgecolor="black" if d == config.OURS else "none",
-                      linewidth=1.2, label=config.DATASETS[d], error_kw={"linewidth": 0.8})
-        if d == config.OURS:
-            for rect, v, e in zip(bars, acc, err):
-                ax.text(rect.get_x() + rect.get_width() / 2, v + e + 1.5, f"{v:.1f}",
-                        ha="center", va="bottom", fontsize=9, fontweight="bold")
+    x = np.arange(len(benches)) + np.where(np.array(benches) == "mean", 0.4, 0.0)
 
-    ax.set_xticks(x, [config.BENCHMARKS[b] for b in benches])
-    ax.set_ylabel("acc@1, %")
-    ax.set_ylim(0, 105)
-    ax.spines[["top", "right"]].set_visible(False)
-    ax.legend(title="Данные GRPO", fontsize=9, title_fontsize=9, ncol=5,
-              loc="upper center", bbox_to_anchor=(0.5, 1.2), frameon=False)
+    for ax, (policy, title) in zip(axes, config.POLICIES.items()):
+        for i, d in enumerate(datasets):
+            acc = [float(cell[policy, d, b]["acc_at_1"]) for b in benches]
+            err = [float(cell[policy, d, b]["std"]) for b in benches]
+            ax.bar(x + (i - 2) * width, acc, width, yerr=err, capsize=1.5,
+                   color=COLORS[d], label=config.DATASETS[d],
+                   error_kw={"linewidth": 0.6, "ecolor": "#424242"})
+        mean_x = x[benches.index("mean")]
+        ax.axvline(mean_x - 0.7, color="#9E9E9E", linewidth=0.6, linestyle="--")
+        ax.set_title(title, loc="left", fontsize=12, fontweight="bold")
+        ax.set_ylabel("acc@1, %")
+        ax.set_ylim(0, 115)
+        ax.set_yticks(range(0, 101, 20))
+        ax.grid(axis="y", linewidth=0.3, alpha=0.6)
+        ax.set_axisbelow(True)
+        ax.spines[["top", "right"]].set_visible(False)
+
+    axes[-1].set_xticks(x, [config.BENCHMARKS[b] for b in benches], fontsize=11)
+    axes[0].legend(title="Данные для GRPO", fontsize=11, title_fontsize=11, ncol=5,
+                   loc="lower center", bbox_to_anchor=(0.5, 1.12), frameon=False)
     fig.tight_layout()
 
     paths = []
