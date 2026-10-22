@@ -18,7 +18,8 @@
 
 ## Материалы
 
-- [Статья](paper/main.tex)
+- [LinkReview](LINKREVIEW.md)
+- [Статья (PDF)](paper/main.pdf), [исходник](paper/main.tex)
 
 ## Описание проекта
 
