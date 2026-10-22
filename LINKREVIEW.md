@@ -1,7 +1,7 @@
 # LinkReview
 
 - Здесь собраны работы, полезные для статьи, сгруппированные по темам.
-- Сейчас в таблице 50 работ: 16 из них цитирует текущая версия статьи, ещё 34 добавлены для раздела Related Work. Курс требует не меньше 40.
+- Сейчас в таблице 52 работы: 16 из них цитирует текущая версия статьи, ещё 36 добавлены для раздела Related Work (включая самые близкие свежие аналоги WIST и DARC). Курс требует не меньше 40.
 
 > [!NOTE]
 > Таблица обновляется и не является финальной версией.
@@ -9,6 +9,8 @@
 | Тема | Название | Год | Авторы | Статья | Код | Кратко |
 | :--- | :--- | :---: | :--- | :---: | :---: | :--- |
 | Self-play на корпусе | SPICE: Self-Play In Corpus Environments Improves Reasoning | 2025 | Liu et al. | [arXiv](https://arxiv.org/abs/2510.24684) | — | Базовая работа: Challenger видит документ и задаёт вопрос, Reasoner отвечает без документа; награда Challenger максимальна при 50% решаемости. CRISP переносит идею на русскоязычные предметные корпуса. |
+| Self-play на корпусе | WIST: Web-Grounded Iterative Self-Play Tree for Domain-Targeted Reasoning Improvement | 2026 | Li et al. | [arXiv](https://arxiv.org/abs/2603.22352) | [GitHub](https://github.com/lfy-123/WIST) | Ближайший аналог: Challenger получает очищенный веб-документ из дерева доменов, Solver отвечает без него, награда — гауссиана по дисперсии с пиком при 50%, обучение Dr. GRPO, куррикулум по «обучаемости» ветвей дерева. На Qwen3-4B-Base Overall 43.1 против 41.8 у SPICE. Отличие CRISP: корпус из PDF-учебников (OCR и LLM-фильтрация), русские STEM-области, на выходе два артефакта (корпус для предобучения и QA-датасет после судьи-куратора), а не только обученная модель. |
+| Self-play на корпусе | DARC: Decoupled Asymmetric Reasoning Curriculum for LLM Evolution | 2026 | Fan, Ye, Lin | [arXiv](https://arxiv.org/abs/2601.13761) | [GitHub](https://github.com/RUCBM/DARC) | Двухэтапная схема: Questioner учится генерировать по внешнему корпусу вопросы заданной сложности, затем Solver обучается асимметричной самодистилляцией (учитель видит документ, ученик — нет). В среднем +10.9 п. на девяти бенчмарках и трёх моделях. В отличие от CRISP, сложность задаётся явно, а не наградой по дисперсии, и нет курирования вопросов отдельным судьёй. |
 | Self-play без данных | R-Zero: Self-Evolving Reasoning LLM from Zero Data | 2025 | Huang et al. | [arXiv](https://arxiv.org/abs/2508.05004) | [GitHub](https://github.com/Chengsong-Huang/R-Zero) | Пара Challenger–Solver генерирует задачи без внешних данных. Без опоры на корпус такая генерация замыкается на знаниях модели. |
 | Self-play без данных | Absolute Zero: Reinforced Self-play Reasoning with Zero Data | 2025 | Zhao et al. | [arXiv](https://arxiv.org/abs/2505.03335) | [GitHub](https://github.com/LeapLabTHU/Absolute-Zero-Reasoner) | Модель сама предлагает и решает задачи с проверкой через исполнение кода. Пример self-play, ограниченного верифицируемыми доменами. |
 | Синтетические инструкции | Self-Instruct: Aligning Language Models with Self-Generated Instructions | 2022 | Wang et al. | [arXiv](https://arxiv.org/abs/2212.10560) | [GitHub](https://github.com/yizhongw/self-instruct) | Генерация инструкций самой моделью из небольшого набора затравок. Базовый подход к синтетическим данным для дообучения. |
