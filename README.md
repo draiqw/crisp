@@ -21,7 +21,8 @@
 - [LinkReview](LINKREVIEW.md)
 - [Код](code)
 - [Статья (PDF)](paper/main.pdf), [исходник](paper/main.tex)
-- [Слайд O-slide (PDF)](slides/main.pdf), [исходник](slides/main.tex)
+- [Слайд O-slide, 23.10 (PDF)](slides/23-10/main.pdf), [исходник](slides/23-10/main.tex), [текст](slides/23-10/talk_script.md)
+- [Доклад на 3 минуты, 13.11](slides/13-11/talk.tex), [текст](slides/13-11/talk_script.md)
 
 ## Описание проекта
 

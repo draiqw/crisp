@@ -1,0 +1,149 @@
+\documentclass[aspectratio=169]{beamer}
+
+\graphicspath{{figures/}{../figures/}{../../paper/figures/}}
+
+% Кириллица: pdfLaTeX -- через T2A, XeLaTeX/LuaLaTeX -- через системные шрифты.
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T2A]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else
+  \usepackage{fontspec}
+  \setsansfont{Arial}
+\fi
+\usepackage[english,russian]{babel}
+\usepackage{amssymb,amsmath}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.17}
+
+\usecolortheme{beaver}
+\usefonttheme[onlymath]{serif}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamersize{text margin left=0.5cm,text margin right=0.5cm}
+\setbeamerfont{frametitle}{size=\normalsize}
+
+\title{CRISP: QA-датасет из сырых PDF\\с помощью самоигры Challenger--Reasoner}
+\author{Роман Акрамов\\[2pt]\small Научный руководитель: Р.\,В.~Ищенко}
+\date{}
+
+\begin{document}
+
+% ---------- 1. Титул ----------
+\begin{frame}
+\titlepage
+\end{frame}
+
+% ---------- 2. Итог ----------
+\begin{frame}{Вопросы, сгенерированные из PDF без разметки, обучают модель на уровне открытых датасетов}
+\vspace{-10pt}
+\footnotesize
+Qwen3-14B, один рецепт GRPO, меняются только обучающие данные. Метрика: acc@1, среднее по 9 математическим бенчмаркам.
+\centering
+\includegraphics[width=0.9\textwidth]{oslide_main.pdf}
+
+\raggedright
+\textbf{Base:} прирост $+4.1$ п.п., у открытых датасетов от $+4.9$ до $+6.8$.
+\quad \textbf{Instruct:} $+2.1$ п.п., DAPO-Math и DeepMath дают от $-7$ до $-10$.
+\end{frame}
+
+% ---------- 3. Задача ----------
+\begin{frame}{Для узкой предметной области нет пар <<вопрос--ответ>>: узкое место --- данные, а не алгоритмы}
+\centering
+SFT и RL (GRPO) отработаны, но им нужны вопросы с проверяемыми ответами.
+
+\vspace{10pt}
+\small
+\begin{tabular}{ll}
+\toprule
+Источник данных & Чего не хватает \\
+\midrule
+Ручная разметка экспертами & слишком дорого \\
+Дистилляция из модели-учителя & ограничена знаниями учителя \\
+Сырой корпус текстов & нет пар <<вопрос--ответ>> \\
+Самоигра без документов (R-Zero, AZR) & галлюцинации, дрейф распределения \\
+\midrule
+\textbf{CRISP: самоигра по документам} & \textbf{ответ из текста, сложность сама растёт} \\
+\bottomrule
+\end{tabular}
+
+\vspace{10pt}
+\textbf{Цель:} из PDF предметной области автоматически получить корпус и QA-датасет для SFT и RL.
+\end{frame}
+
+% ---------- 4. Конвейер ----------
+\begin{frame}{Четыре этапа превращают сырые PDF в корпус для предобучения и QA-датасет}
+\begin{columns}[c]
+\begin{column}{0.56\textwidth}
+\centering
+\includegraphics[height=0.8\textheight]{pipeline_factory.pdf}
+\end{column}
+\begin{column}{0.42\textwidth}
+\small
+\textbf{1. OCR:} PDF $\to$ Markdown с формулами и таблицами.
+
+\medskip
+\textbf{2. Очистка:} фрагменты, оценка качества LLM-судьёй.
+
+\medskip
+\textbf{3. Самоигра:} Challenger задаёт вопросы по фрагменту, Reasoner отвечает.
+
+\medskip
+\textbf{4. Отбор:} LLM-судья по 10 критериям.
+
+\medskip
+\textbf{Данные:} 766 PDF, три русскоязычные STEM-области.
+\end{column}
+\end{columns}
+\end{frame}
+
+% ---------- 5. Самоигра ----------
+\begin{frame}{Награда за дисперсию удерживает вопросы на грани возможностей модели}
+\begin{columns}[c]
+\begin{column}{0.48\textwidth}
+\small
+\textbf{Challenger} видит документ, \textbf{Reasoner} --- нет; он отвечает $K$ раз, $\bar\ell$ --- доля верных ответов.
+\[
+  r_C = \exp\!\Bigl(-\frac{(v - 0.25)^2}{2 \cdot 0.01}\Bigr),
+  \quad v = \bar\ell\,(1-\bar\ell)
+\]
+Максимум при $\bar\ell = 0.5$: лёгкие и нерешаемые вопросы награды не получают.
+\end{column}
+\begin{column}{0.5\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=\linewidth, height=0.6\textheight,
+  xlabel={доля верных ответов Reasoner $\bar\ell$},
+  ylabel={награда Challenger $r_C$},
+  xmin=0, xmax=1, ymin=0, ymax=1.05,
+  xtick={0,0.25,0.5,0.75,1},
+  ytick={0,0.5,1},
+  label style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+]
+\addplot[domain=0:1, samples=200, thick, color=red!60!black]
+  {exp(-((x*(1-x)) - 0.25)^2 / (2*0.01))};
+\end{axis}
+\end{tikzpicture}
+\end{column}
+\end{columns}
+
+\vspace{6pt}
+\small
+По мере обучения Reasoner граница сдвигается, и Challenger следует за ней: сложность вопросов растёт сама.
+\end{frame}
+
+% ---------- 6. Выводы ----------
+\begin{frame}{Итоги: полный конвейер от PDF до обучающих данных без ручной разметки}
+\begin{itemize}
+\item \textbf{QA-датасет:} GRPO на вопросах CRISP даёт прирост того же порядка, что и открытые математические датасеты, и не портит Instruct-модель.
+\medskip
+\item \textbf{Корпус:} 22\,M наших токенов снижают перплексию Qwen3-14B-Instruct так же, как 186\,M токенов OpenWebMath ($-28.1\%$ против $-27.6\%$).
+\medskip
+\item \textbf{Открытость:} код эксперимента и статья --- в репозитории \texttt{github.com/draiqw/crisp}.
+\end{itemize}
+\end{frame}
+
+\end{document}
