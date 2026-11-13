@@ -17,12 +17,14 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.17}
 
-\usecolortheme{beaver}
 \usefonttheme[onlymath]{serif}
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{footline}[frame number]
 \setbeamersize{text margin left=0.5cm,text margin right=0.5cm}
-\setbeamerfont{frametitle}{size=\normalsize}
+\setbeamerfont{frametitle}{size=\normalsize,series=\bfseries}
+\setbeamercolor{frametitle}{fg=black}
+\setbeamercolor{structure}{fg=black}
+\setbeamertemplate{itemize items}{--}
 
 % Цвета серий -- как на главном рисунке (code/plot.py).
 \definecolor{cNone}{HTML}{BDBDBD}
@@ -31,36 +33,72 @@
 \definecolor{cDeep}{HTML}{1565C0}
 \definecolor{cCrisp}{HTML}{E67E22}
 
-\title{CRISP: QA-датасет из сырых PDF\\с помощью самоигры Challenger--Reasoner}
-\author{Роман Акрамов\\[2pt]\small Научный руководитель: Р.\,В.~Ищенко}
-\date{Промежуточный доклад, 13.11.2026}
-
+\title{CRISP: QA-датасет из сырых PDF с помощью самоигры Challenger--Reasoner}
+\author{Акрамов Роман}
+\date{Москва, 2026}
 \begin{document}
 
-% ---------- 1. Титул и цель ----------
-\begin{frame}
-\titlepage
-\vspace{-14pt}
+% ---------- Титул (по шаблону ВКР ВМК МГУ) ----------
+\begin{frame}[plain]
 \centering\small
-\textbf{Цель:} из PDF предметной области без ручной разметки получить QA-датасет\\
-для SFT и RL, который обучает модель не хуже открытых датасетов.
+МОСКОВСКИЙ ГОСУДАРСТВЕННЫЙ УНИВЕРСИТЕТ ИМЕНИ М.\,В.~ЛОМОНОСОВА\\
+ФАКУЛЬТЕТ ВЫЧИСЛИТЕЛЬНОЙ МАТЕМАТИКИ И КИБЕРНЕТИКИ
+
+\vfill
+{\normalsize Акрамов Роман}
+
+\medskip
+{\large\bfseries CRISP: QA-датасет из сырых PDF\\с помощью самоигры Challenger--Reasoner\par}
+
+\medskip
+Промежуточный доклад
+
+\vfill
+\begin{flushright}
+Научный руководитель:\\
+Р.\,В.~Ищенко
+\end{flushright}
+
+\vfill
+Москва, 13.11.2026
 \end{frame}
 
-% ---------- 2. Однослайдовый ----------
-\begin{frame}{Вопросы, сгенерированные из PDF без разметки, обучают модель на уровне открытых датасетов}
-\vspace{-10pt}
+% ---------- Введение ----------
+\begin{frame}{Введение: вопросы из PDF без разметки обучают модель на уровне открытых датасетов}
+\vspace{-6pt}
 \footnotesize
-Qwen3-14B, один рецепт GRPO, меняются только обучающие данные. Метрика: acc@1 на 9 математических бенчмарках.
+\textbf{Цель:} из PDF предметной области без ручной разметки получить QA-датасет для SFT и RL, который обучает модель не хуже открытых датасетов.
+Qwen3-14B, один рецепт GRPO, меняются только обучающие данные; метрика --- acc@1 на 9 математических бенчмарках.
+
 \centering
-\includegraphics[width=0.9\textwidth]{oslide_main.pdf}
+\includegraphics[width=0.8\textwidth]{oslide_main.pdf}
 
 \raggedright
 \textbf{Base:} прирост $+4.1$ п.п., у открытых датасетов от $+4.9$ до $+6.8$.
 \quad \textbf{Instruct:} $+2.1$ п.п., DAPO-Math и DeepMath дают от $-7$ до $-10$.
 \end{frame}
 
-% ---------- 3. Литература ----------
-\begin{frame}{RL-дообучению нужны вопросы с ответами, а существующие способы их получить не подходят узким областям}
+% ---------- 1. Постановка задачи ----------
+\begin{frame}{1. Постановка задачи: датасет оценивается по приросту, который он даёт модели при фиксированном рецепте}
+\small
+\textbf{Модель.} Политика $\pi$ --- Qwen3-14B (Base или Instruct); $\mathrm{GRPO}(\pi, D)$ --- дообучение на датасете $D$ по одному рецепту.
+
+\medskip
+\textbf{Критерий.} Прирост точности относительно исходной модели:
+\[
+  \Delta(D) \;=\; \overline{\mathrm{acc@1}}\bigl(\mathrm{GRPO}(\pi, D)\bigr) \;-\; \overline{\mathrm{acc@1}}(\pi),
+\]
+где $\overline{\mathrm{acc@1}}$ --- среднее по 9 бенчмаркам, по 3 ответа на задачу при $T{=}0.6$.
+
+\medskip
+\textbf{Гипотеза.} Для датасета CRISP $D_C$, полученного без разметки, и открытых датасетов $D_{\text{open}}$ (GSM8K, DAPO-Math, DeepMath)
+\[
+  \Delta(D_C) \;\approx\; \Delta(D_{\text{open}}) \quad \text{в пределах шума оценки.}
+\]
+\end{frame}
+
+% ---------- 2. Обзор существующих решений ----------
+\begin{frame}{2. Обзор существующих решений: RL-дообучению нужны вопросы с ответами, а существующие способы не подходят узким областям}
 \centering
 \footnotesize
 \begin{tabular}{lll}
@@ -82,27 +120,8 @@ SPICE (Liu et al., 2025) & самоигра по корпусу & код и да
 Награду за дисперсию и две роли берём из SPICE и встраиваем в конвейер от PDF до датасета.
 \end{frame}
 
-% ---------- 4. Постановка ----------
-\begin{frame}{Постановка: датасет оценивается по приросту, который он даёт модели при фиксированном рецепте}
-\small
-\textbf{Модель.} Политика $\pi$ --- Qwen3-14B (Base или Instruct); $\mathrm{GRPO}(\pi, D)$ --- дообучение на датасете $D$ по одному рецепту.
-
-\medskip
-\textbf{Критерий.} Прирост точности относительно исходной модели:
-\[
-  \Delta(D) \;=\; \overline{\mathrm{acc@1}}\bigl(\mathrm{GRPO}(\pi, D)\bigr) \;-\; \overline{\mathrm{acc@1}}(\pi),
-\]
-где $\overline{\mathrm{acc@1}}$ --- среднее по 9 бенчмаркам, по 3 ответа на задачу при $T{=}0.6$.
-
-\medskip
-\textbf{Гипотеза.} Для датасета CRISP $D_C$, полученного без разметки, и открытых датасетов $D_{\text{open}}$ (GSM8K, DAPO-Math, DeepMath)
-\[
-  \Delta(D_C) \;\approx\; \Delta(D_{\text{open}}) \quad \text{в пределах шума оценки.}
-\]
-\end{frame}
-
-% ---------- 5. Решение ----------
-\begin{frame}{Решение: конвейер из четырёх этапов, вопросы рождаются в самоигре с наградой за дисперсию}
+% ---------- 3. Построение решения ----------
+\begin{frame}{3. Построение решения: конвейер из четырёх этапов, вопросы рождаются в самоигре с наградой за дисперсию}
 \begin{columns}[c]
 \begin{column}{0.5\textwidth}
 \centering
@@ -136,8 +155,28 @@ SPICE (Liu et al., 2025) & самоигра по корпусу & код и да
 \end{columns}
 \end{frame}
 
-% ---------- 6. Эксперимент и анализ ошибки ----------
-\begin{frame}{Эксперимент: на Base CRISP отстаёт от DAPO-Math и DeepMath меньше, чем шум оценки}
+% ---------- 4. Практическая часть ----------
+\begin{frame}{4.1. Практическая часть: открытый конвейер на одном узле $8\times$A100}
+\small
+\begin{tabular}{p{0.27\textwidth}p{0.66\textwidth}}
+\toprule
+Этап & Реализация \\
+\midrule
+1. OCR & Chandra (Qwen3-VL, Datalab): PDF $\to$ Markdown с формулами в LaTeX и таблицами \\
+2. Очистка и фрагменты & регулярные выражения, разбиение на фрагменты, LLM-оценщик качества (Qwen3-14B, порог $0.6$), извлечение тем \\
+3. Самоигра & Qwen3-14B + две LoRA (Challenger, Reasoner), Dr.\,GRPO; тренер FSDP на GPU 0--4, инференс vLLM на GPU 5--7, горячая замена LoRA без перезапуска \\
+4. Курирование & судья Qwen3.5-27B по рубрике \\
+\midrule
+Оценка датасета & GRPO в \texttt{verl} (FSDP + vLLM), проверка ответов Math-Verify \\
+\bottomrule
+\end{tabular}
+
+\vspace{6pt}
+Гиперпараметры самоигры: $B{=}64$ фрагмента, $K{=}8$ ответов Reasoner, LoRA ранг 128, lr $10^{-6}$.
+\end{frame}
+
+% ---------- 4. Эксперимент ----------
+\begin{frame}{4.2. Эксперимент: на Base CRISP отстаёт от DAPO-Math и DeepMath меньше, чем шум оценки}
 \small
 \textbf{Цели:} сравнить CRISP с тремя открытыми датасетами при одном рецепте GRPO; проверить на слабой (Base) и сильной (Instruct) модели.
 \textbf{Ошибка:} усы --- $\pm1$ std биномиального шума среднего по 9 бенчмаркам.
@@ -169,8 +208,8 @@ SPICE (Liu et al., 2025) & самоигра по корпусу & код и да
 Шум среднего $\approx 1$--$1.5$ п.п., на отдельном AIME (30 задач) --- до 9 п.п.: выводы делаем по среднему. GSM8K на Base выше CRISP на 2.7 п.п. --- это больше шума.
 \end{frame}
 
-% ---------- 7. Итог ----------
-\begin{frame}{Итог: вопросы из PDF без разметки дают прирост на уровне открытых датасетов}
+% ---------- 5. Заключение ----------
+\begin{frame}{5. Заключение: вопросы из PDF без разметки дают прирост на уровне открытых датасетов}
 \centering
 \small
 \begin{tabular}{lcccc}
@@ -190,6 +229,22 @@ DeepMath & $64.1 \pm 1.1$ & $+5.3$ & $67.9 \pm 1.2$ & $-7.2$ \\
 \vspace{8pt}
 \raggedright
 \textbf{Выводы.} На Base прирост того же порядка (на уровне DAPO-Math и DeepMath, ниже GSM8K), на Instruct CRISP не ухудшает модель ($+2.1$), а DAPO-Math и DeepMath снижают точность на 7--10 п.п.
+\end{frame}
+
+% ---------- Список литературы ----------
+\begin{frame}{Список литературы}
+\scriptsize
+\begin{enumerate}
+\item Shao Z. et al. DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models // arXiv:2402.03300. --- 2024.
+\item Liu Z. et al. Understanding R1-Zero-Like Training: A Critical Perspective // arXiv:2503.20783. --- 2025.
+\item Wang Y. et al. Self-Instruct: Aligning Language Models with Self-Generated Instructions // arXiv:2212.10560. --- 2022.
+\item Luo H. et al. WizardMath: Empowering Mathematical Reasoning for Large Language Models via Reinforced Evol-Instruct // arXiv:2308.09583. --- 2023.
+\item Huang C. et al. R-Zero: Self-Evolving Reasoning LLM from Zero Data // arXiv:2508.05004. --- 2025.
+\item Zhao A. et al. Absolute Zero: Reinforced Self-play Reasoning with Zero Data // arXiv:2505.03335. --- 2025.
+\item Liu B. et al. SPICE: Self-Play In Corpus Environments Improves Reasoning // arXiv:2510.24684. --- 2025.
+\item Sheng G. et al. HybridFlow: A Flexible and Efficient RLHF Framework // arXiv:2409.19256. --- 2024.
+\item Cobbe K. et al. Training Verifiers to Solve Math Word Problems // arXiv:2110.14168. --- 2021.
+\end{enumerate}
 \end{frame}
 
 \end{document}
